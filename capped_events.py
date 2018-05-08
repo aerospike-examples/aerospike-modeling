@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
 import aerospike
 from aerospike import exception as e
+import calendar
+import datetime
 from optparse import OptionParser
+import pprint
+import random
 import sys
 
 # Options Parsing
@@ -28,13 +31,35 @@ optparser.add_option(
     "-n", "--namespace", dest="namespace", type="string", default="test", metavar="<NS>",
     help="Port of the Aerospike server.")
 optparser.add_option(
-    "-s", "--set", dest="set", type="string", default="demo", metavar="<SET>",
+    "-s", "--set", dest="set", type="string", default="scores_demo", metavar="<SET>",
     help="Port of the Aerospike server.")
 (options, args) = optparser.parse_args()
 if options.help:
     optparser.print_help()
     print()
     sys.exit(1)
+
+def random_score():
+    year = random.randrange(1981, 2017)
+    month = random.randrange(1, 12)
+    if month == 2:
+        if not calendar.isleap(year):
+            day = random.randrange(1, 28, 1)
+        else:
+            day = random.randrange(1, 29, 1)
+    elif month in [4, 6, 9, 11]:
+        day = random.randrange(1, 30, 1)
+    else:
+        day = random.randrange(1, 31, 1)
+    hour = random.randrange(0, 23, 1)
+    minute = random.randrange(0, 59, 1)
+    second = random.randrange(0, 59, 1)
+    dt = datetime.datetime(year, month, day, hour, minute, second)
+    ms = random.randrange(100, 999, 1)
+    ts = int(dt.strftime('%s')) *1000 + ms
+    name = chr(random.randrange(65, 90, 1)) + chr(random.randrange(65, 90, 1)) + chr(random.randrange(65, 90, 1))
+    score = random.randrange(2000, 18390, 10)
+    return (ts, score, name, dt.strftime('%Y-%m-%d %H:%M:%S'))
 
 config = {'hosts': [(options.host, options.port)]}
 try:
@@ -46,17 +71,16 @@ except ex.ClientError as e:
 
 namespace = options.namespace if options.namespace and options.namespace != 'None' else None
 set = options.set if options.set and options.set != 'None' else None
-key = (namespace, set, 1)
-events = {
-    1523474230000: ['fav', {'sku':1, 'b':2}],
-    1523474231001: ['comment', {'sku':2, 'b':22}],
-    1523474236006: ['viewed', {'foo':'bar', 'sku':3, 'zz':'top'}],
-    1523474235005: ['comment', {'sku':1, 'c':1234}],
-    1523474233003: ['viewed', {'sku':3, 'z':26}],
-    1523474234004: ['viewed', {'sku':1, 'ff':'hhhl'}],
+key = (namespace, set, 'pacman')
+scores = {
+    1512435671573: [9800,  {'name': 'CPU', 'dt': '2017-12-05 01:01:11'}],
+    1525182446891: [9200,  {'name': 'ETC', 'dt': '2018-05-01 13:47:26'}],
+    1515114071923: [24700, {'name': 'SOS', 'dt': '2018-01-05 01:01:11'}],
+    291807988156:  [34500, {'name': 'ACE', 'dt': '1980-10-26 09:46:28'}],
+    1521398652483: [18400, {'name': 'EIR', 'dt': '2018-03-18 18:44:12'}],
+    1511104958197: [17400, {'name': 'CFO', 'dt': '2017-11-19 15:22:38'}],
 }
-fav_sku = {}
-bins = {'events': events, 'fav_sku': fav_sku}
+bins = {'scores': scores}
 
 try:
     client.put(key, bins, {'ttl': aerospike.TTL_NEVER_EXPIRE})
@@ -64,72 +88,57 @@ try:
         'map_write_mode': aerospike.MAP_UPDATE,
         'map_order': aerospike.MAP_KEY_VALUE_ORDERED
     }
-    client.map_set_policy(key, 'events', map_policy)
+    client.map_set_policy(key, 'scores', map_policy)
 except e.RecordError as e:
   print("Error: {0} [{1}]".format(e.msg, e.code))
   sys.exit(3)
 
 try:
-    print("\nGet all the 'comment' type events")
-    v = client.map_get_by_value(key, 'events', ['comment'], aerospike.MAP_RETURN_KEY_VALUE)
-    print(v)
-    print("\nGet the count of all the 'viewed' type events")
-    c = client.map_get_by_value(key, 'events', ['viewed'], aerospike.MAP_RETURN_COUNT)
-    print(c)
-    version = client.info_all('version')
-    release = version.values()[0][1].split(' ')[-1]
-    if aerospike.__version__ >= '3.2.0' and release >= '3.16.0.1':
-        print("\nGet the count of all the 'viewed' and 'comment' type events")
-        c = client.map_get_by_value_list(key, 'events',[['viewed'], ['comment']], aerospike.MAP_RETURN_COUNT)
-        print(c)
-    print("\nGet all the events in the range between two millisecond timestamp")
-    k = client.map_get_by_key_range(key, 'events', 1523474230000, 1523474235999, aerospike.MAP_RETURN_KEY_VALUE)
-    print(k)
-    o = client.info_all("sets/{0}/{1}".format(namespace, set))
-    object_size = o.values()[0][1].split(':')[2]
-    print("\nThe size of the object with 6 events:")
-    print(object_size)
+    pp = pprint.PrettyPrinter(indent=2)
+    meta = {'ttl': aerospike.TTL_NEVER_EXPIRE}
+    print("\nGet the Pac-Man top scores, from an initial list of 6, sorted by date")
+    by_date = client.map_get_by_index_range(key, 'scores', 0, -1, aerospike.MAP_RETURN_KEY_VALUE)
+    pp.pprint(by_date)
+    print("\nGet all Pac-Man top scores, sorted by score (rank)")
+    by_rank = client.map_get_by_rank_range(key, 'scores', 0, -1, aerospike.MAP_RETURN_KEY_VALUE)
+    pp.pprint(by_rank)
+    print("\nExpanding top scores for Pac-Man with 94 randomly generated elements")
+    for i in xrange(6, 100, 1):
+        ts, score, name, dt = random_score()
+        scores[ts] = [score, {'name': name, 'dt': dt}]
+    client.map_put_items(key, 'scores', scores, map_policy, meta)
+    print("Confirming the size of Pac-Man top scores:", client.map_size(key, 'scores'))
+    print("\nGet the top-10 Pac-Man scores, sorted by score (rank)")
+    by_rank = client.map_get_by_rank_range(key, 'scores', -10, -1, aerospike.MAP_RETURN_KEY_VALUE)
+    pp.pprint(by_rank)
+    print("\nLowest score is:")
+    pp.pprint(client.map_get_by_rank(key, 'scores', 0, aerospike.MAP_RETURN_KEY_VALUE))
+    print("Highest score is:")
+    pp.pprint(client.map_get_by_rank(key, 'scores', -1, aerospike.MAP_RETURN_KEY_VALUE))
+    print("\nInject a new top score, keep map capped to 100 elements, in a single operation")
+    ts, score, name, dt = random_score()
+    new_score = [score, {'name': name, 'dt': dt}]
+    ops = [
+        {
+            "op" : aerospike.OP_MAP_PUT,
+            "bin": "scores",
+            "key": ts,
+            "val": new_score
+        },
+        {
+            "op" : aerospike.OP_MAP_REMOVE_BY_RANK,
+            "bin": "scores",
+            "index": 0
+        }
+    ]
+    client.operate(key, ops, meta)
+    print("\nSize of the top scores map is", client.map_size(key, 'scores'))
+    print("New lowest score is:")
+    pp.pprint(client.map_get_by_rank(key, 'scores', 0, aerospike.MAP_RETURN_KEY_VALUE))
+    print("Highest score remains:")
+    pp.pprint(client.map_get_by_rank(key, 'scores', -1, aerospike.MAP_RETURN_KEY_VALUE))
+    client.truncate(namespace, set, 0)
 except e.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
-    sys.exit(4)
-
-print("\nAdding cruft")
-events = {}
-t = 1523473230000
-for i in xrange(1, 401, 1):
-    events[t] = ['zzz', {'sku':i,'bbb':i}]
-    t = t + 7337
-t = 1523474237007
-for i in xrange(401, 801, 1):
-    events[t] = ['xyz', {'sku':i,'bbb':i}]
-    t = t + 7139
-
-try:
-    client.map_put_items(key, 'events', events, map_policy)
-    c = client.map_size(key, 'events')
-    print("\nChecking for the number of events")
-    print(c)
-    print("400 elements before the inital 6 events, 400 after")
-    print("\nGet all the 'comment' type events")
-    v = client.map_get_by_value(key, 'events', ['comment'], aerospike.MAP_RETURN_KEY_VALUE)
-    print(v)
-    print("\nGet the count of all the 'viewed' type events")
-    c = client.map_get_by_value(key, 'events', ['viewed'], aerospike.MAP_RETURN_COUNT)
-    print(c)
-    if aerospike.__version__ >= '3.2.0' and release >= '3.16.0.1':
-        print("\nGet the count of all the 'viewed' and 'comment' type events")
-        c = client.map_get_by_value_list(key, 'events',[['viewed'], ['comment']], aerospike.MAP_RETURN_COUNT)
-        print(c)
-    print("\nGet all the events in the range between two millisecond timestamp")
-    k = client.map_get_by_key_range(key, 'events', 1523474230000, 1523474235999, aerospike.MAP_RETURN_KEY_VALUE)
-    print(k)
-    o = client.info_all("sets/{0}/{1}".format(namespace, set))
-    object_size = o.values()[0][1].split(':')[2]
-    print("\nThe size of the object with 806 events:")
-    print(object_size)
-except e.RecordError as e:
-    print("Error: {0} [{1}]".format(e.msg, e.code))
-
-client.truncate(namespace, set, 0)
 
 client.close()

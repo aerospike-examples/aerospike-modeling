@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
 import aerospike
 from aerospike import exception as e
@@ -29,7 +28,7 @@ optparser.add_option(
     "-n", "--namespace", dest="namespace", type="string", default="test", metavar="<NS>",
     help="Port of the Aerospike server.")
 optparser.add_option(
-    "-s", "--set", dest="set", type="string", default="demo", metavar="<SET>",
+    "-s", "--set", dest="set", type="string", default="events_demo", metavar="<SET>",
     help="Port of the Aerospike server.")
 (options, args) = optparser.parse_args()
 if options.help:
@@ -71,7 +70,7 @@ except e.RecordError as e:
   sys.exit(3)
 
 try:
-    client.truncate(namespace, set, 0)
+    time.sleep(1)
     pp = pprint.PrettyPrinter(indent=2)
     print("\nGet all the 'comment' type events")
     v = client.map_get_by_value(key, 'events', ['comment'], aerospike.MAP_RETURN_KEY_VALUE)
@@ -130,6 +129,7 @@ try:
     object_size = o.values()[0][1].split(':')[2]
     print("\nThe size of the object with 806 events:")
     print(object_size)
+    client.truncate(namespace, set, 0)
 except e.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
 
