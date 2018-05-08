@@ -5,18 +5,18 @@ in particular [Map](https://www.aerospike.com/docs/guide/cdt-map.html)
 and [List](https://www.aerospike.com/docs/guide/cdt-list.html) can be used to
 implement common patterns.
 
-## Map Examples
+## Using Maps to Capture and Query Events
 
 A KV-ordered Map is used to collect a user's events. The events are keyed on
 the millisecond timestamp of the event, with the value being a list of the
 following structure:
 ```
-[ event-type, { map-of-all-other-attributes } ]
+[ event-type, { map-of-all-other-event-attributes } ]
 ```
 For example:
 ```python
 event = {
-    1523474236006: ['viewed', {'foo':'bar', 'sku':3, 'zz':'top'}]
+    1523474236006: ['viewed', {'foo':'bar', 'sku':3, 'zz':'top'}] # represents a single event
 }
 ```
 
@@ -29,8 +29,8 @@ The [map return type](https://www.aerospike.com/apidocs/python/aerospike.html#ma
 can be key-value pairs or the count of the elements matching the specified
 'query' criteria, or something else that matters to the applicaiton developer.
 ```
-$ python map_example.py --help
-Usage: map_example.py [options]
+$ python event_capture_and_query.py --help
+Usage: event_capture_and_query.py [options]
 
 Options:
   --help                Displays this message.
@@ -47,5 +47,6 @@ Options:
   -s <SET>, --set=<SET>
                         Port of the Aerospike server.
 
-$ python map_example.py -h "172.16.60.131"
+$ python event_capture_and_query.py -h "172.16.60.131"
 ```
+

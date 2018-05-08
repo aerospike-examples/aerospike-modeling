@@ -1,24 +1,10 @@
 # -*- coding: utf-8 -*-
-##########################################################################
-# Copyright 2018 Aerospike, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-##########################################################################
 
 from __future__ import print_function
 import aerospike
 from aerospike import exception as e
 from optparse import OptionParser
+import pprint
 import sys
 
 # Options Parsing
@@ -70,8 +56,8 @@ events = {
     1523474233003: ['viewed', {'sku':3, 'z':26}],
     1523474234004: ['viewed', {'sku':1, 'ff':'hhhl'}],
 }
-fav_sku = {}
-bins = {'events': events, 'fav_sku': fav_sku}
+
+bins = {'events': events, 'yes': 'way'}
 
 try:
     client.put(key, bins, {'ttl': aerospike.TTL_NEVER_EXPIRE})
@@ -85,15 +71,27 @@ except e.RecordError as e:
   sys.exit(3)
 
 try:
+    client.truncate(namespace, set, 0)
+    pp = pprint.PrettyPrinter(indent=2)
     print("\nGet all the 'comment' type events")
     v = client.map_get_by_value(key, 'events', ['comment'], aerospike.MAP_RETURN_KEY_VALUE)
-    print(v)
+    pp.pprint(v)
     print("\nGet the count of all the 'viewed' type events")
     c = client.map_get_by_value(key, 'events', ['viewed'], aerospike.MAP_RETURN_COUNT)
     print(c)
-    print("\nGet all the events in the range between two millisecond timestamp")
+    version = client.info_all('version')
+    release = version.values()[0][1].split(' ')[-1]
+    if aerospike.__version__ >= '3.2.0' and release >= '3.16.0.1':
+        print("\nGet the count of all the 'viewed' and 'comment' type events")
+        c = client.map_get_by_value_list(key, 'events',[['viewed'], ['comment']], aerospike.MAP_RETURN_COUNT)
+        print(c)
+    print("\nGet all the events in the range between two millisecond timestamps")
     k = client.map_get_by_key_range(key, 'events', 1523474230000, 1523474235999, aerospike.MAP_RETURN_KEY_VALUE)
-    print(k)
+    pp.pprint(k)
+    o = client.info_all("sets/{0}/{1}".format(namespace, set))
+    object_size = o.values()[0][1].split(':')[2]
+    print("\nThe size of the object with 6 events:")
+    print(object_size)
 except e.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
     sys.exit(4)
@@ -104,10 +102,10 @@ t = 1523473230000
 for i in xrange(1, 401, 1):
     events[t] = ['zzz', {'sku':i,'bbb':i}]
     t = t + 7337
-    t = 1523474237007
-    for i in xrange(401, 801, 1):
-        events[t] = ['xyz', {'sku':i,'bbb':i}]
-        t = t + 7139
+t = 1523474237007
+for i in xrange(401, 801, 1):
+    events[t] = ['xyz', {'sku':i,'bbb':i}]
+    t = t + 7139
 
 try:
     client.map_put_items(key, 'events', events, map_policy)
@@ -117,18 +115,22 @@ try:
     print("400 elements before the inital 6 events, 400 after")
     print("\nGet all the 'comment' type events")
     v = client.map_get_by_value(key, 'events', ['comment'], aerospike.MAP_RETURN_KEY_VALUE)
-    print(v)
+    pp.pprint(v)
     print("\nGet the count of all the 'viewed' type events")
     c = client.map_get_by_value(key, 'events', ['viewed'], aerospike.MAP_RETURN_COUNT)
     print(c)
-    print("\nGet all the events in the range between two millisecond timestamp")
+    if aerospike.__version__ >= '3.2.0' and release >= '3.16.0.1':
+        print("\nGet the count of all the 'viewed' and 'comment' type events")
+        c = client.map_get_by_value_list(key, 'events',[['viewed'], ['comment']], aerospike.MAP_RETURN_COUNT)
+        print(c)
+    print("\nGet all the events in the range between two millisecond timestamps")
     k = client.map_get_by_key_range(key, 'events', 1523474230000, 1523474235999, aerospike.MAP_RETURN_KEY_VALUE)
-    print(k)
+    pp.pprint(k)
+    o = client.info_all("sets/{0}/{1}".format(namespace, set))
+    object_size = o.values()[0][1].split(':')[2]
+    print("\nThe size of the object with 806 events:")
+    print(object_size)
 except e.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
-
-o = client.info("sets/{0}/{1}".format(namespace, set))
-print(o)
-client.truncate(namespace, set, 0)
 
 client.close()
