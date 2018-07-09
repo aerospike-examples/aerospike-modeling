@@ -7,11 +7,11 @@ implement common patterns.
 
 ## Using Maps to Capture and Query Events
 
-A KV-ordered Map is used to collect a user's events. The events are keyed on
-the millisecond timestamp of the event, with the value being a list of the
-following structure:
+In this example, a KV-ordered Map is used to collect a user's events.
+The events are keyed on the millisecond timestamp of the event, with the value
+being a list of the following structure:
 ```
-[ event-type, { map-of-all-other-event-attributes } ]
+timestamp: [ event-type, { map-of-all-other-event-attributes } ]
 ```
 For example:
 ```python
@@ -21,7 +21,7 @@ event = {
 ```
 
 This enables several types of searches using the Map API methods:
- * Get the event in a timestamp range (time slicing).
+ * Get the event in a timestamp range (time slicing)
  * Get all the events of a specific type
  * Get all the events matching a list of specified types
 
@@ -29,29 +29,44 @@ The [map return type](https://www.aerospike.com/apidocs/python/aerospike.html#ma
 can be key-value pairs or the count of the elements matching the specified
 'query' criteria, or something else that matters to the applicaiton developer.
 ```
-$ python event_capture_and_query.py --help
-Usage: event_capture_and_query.py [options]
-
-Options:
-  --help                Displays this message.
-  -U <USERNAME>, --username=<USERNAME>
-                        Username to connect to database.
-  -P <PASSWORD>, --password=<PASSWORD>
-                        Password to connect to database.
-  -h <ADDRESS>, --host=<ADDRESS>
-                        Address of Aerospike server.
-  -p <PORT>, --port=<PORT>
-                        Port of the Aerospike server.
-  -n <NS>, --namespace=<NS>
-                        Port of the Aerospike server.
-  -s <SET>, --set=<SET>
-                        Port of the Aerospike server.
-
 $ python event_capture_and_query.py -h "172.16.60.131"
 ```
 
+See: [event_capture_and_query.py](blob/master/event_capture_and_query.py)
+
+## Maps as Event Containers with Timestamp Values
+
+In this example, a KV-ordered Map is used to track messages in a conversation
+between two users. Each message has a UUID, which will act as the key. The
+message is logged to a point in time, with a timestamp as the first index of
+a list value:
+
+```
+UUID: [ timestamp, { map-of-all-other-event-attributes } ]
+```
+For example:
+```python
+message = {
+    '319fa1a6-0640-4354-a426-10c4d3459f0a': [1523474316003, "Hee-hee!"]
+}
+```
+
+This enables searches for messages by:
+ * Get messages in a timestamp range (time slicing)
+ * Get messages by their rank (most recent N messages)
+
+Because the timestamp is not the key we can use a less fine grain resolution
+(seconds rather than milliseconds) and have multiple messages with the same
+timestamp.
+
+```
+$ python event_query_by_value_interval.py -h "172.16.60.131"
+```
+
+See: [event_query_by_value_interval.py](blob/master/event_query_by_value_interval.py)
+
 ## Capped Collection of Events
-Expanding on the previous example of capturing and querying events in a map, we
+Expanding on the previous examples of capturing and querying events in a map, we
 will see how a collection (map or list) can be capped to a specified size.
 
 In this example we're tracking high scores for video games over time. The
@@ -76,24 +91,8 @@ In the example the following happens:
  * Show that the number of elements remains at 100, same highest top score, and the new score at the bottom of the top-100
 
 ```
-$ python capped_events.py --help
-Usage: capped_events.py [options]
-
-Options:
-  --help                Displays this message.
-  -U <USERNAME>, --username=<USERNAME>
-                        Username to connect to database.
-  -P <PASSWORD>, --password=<PASSWORD>
-                        Password to connect to database.
-  -h <ADDRESS>, --host=<ADDRESS>
-                        Address of Aerospike server.
-  -p <PORT>, --port=<PORT>
-                        Port of the Aerospike server.
-  -n <NS>, --namespace=<NS>
-                        Port of the Aerospike server.
-  -s <SET>, --set=<SET>
-                        Port of the Aerospike server.
-
 $ python capped_events.py -h "172.16.60.131"
 ```
+
+See: [capped_events.py](blob/master/capped_events.py)
 

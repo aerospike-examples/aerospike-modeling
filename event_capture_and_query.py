@@ -40,7 +40,7 @@ config = {'hosts': [(options.host, options.port)]}
 try:
     client = aerospike.client(config).connect(
                 options.username, options.password)
-except ex.ClientError as e:
+except e.ClientError as e:
   print("Error: {0} [{1}]".format(e.msg, e.code))
   sys.exit(2)
 
@@ -69,8 +69,10 @@ except e.RecordError as e:
   print("Error: {0} [{1}]".format(e.msg, e.code))
   sys.exit(3)
 
+# return types
+# sneaky by value comparisons
+# check value range if 1st is int requires second to be null
 try:
-    time.sleep(1)
     pp = pprint.PrettyPrinter(indent=2)
     print("\nGet all the 'comment' type events")
     v = client.map_get_by_value(key, 'events', ['comment'], aerospike.MAP_RETURN_KEY_VALUE)
