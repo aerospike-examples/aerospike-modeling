@@ -32,7 +32,7 @@ can be key-value pairs or the count of the elements matching the specified
 $ python event_capture_and_query.py -h "172.16.60.131"
 ```
 
-See: [event_capture_and_query.py](blob/master/event_capture_and_query.py)
+See: [event_capture_and_query.py](event_capture_and_query.py)
 
 ## Maps as Event Containers with Timestamp Values
 
@@ -63,7 +63,7 @@ timestamp.
 $ python event_query_by_value_interval.py -h "172.16.60.131"
 ```
 
-See: [event_query_by_value_interval.py](blob/master/event_query_by_value_interval.py)
+See: [event_query_by_value_interval.py](event_query_by_value_interval.py)
 
 ## Capped Collection of Events
 Expanding on the previous examples of capturing and querying events in a map, we
@@ -94,5 +94,5 @@ In the example the following happens:
 $ python capped_events.py -h "172.16.60.131"
 ```
 
-See: [capped_events.py](blob/master/capped_events.py)
+See: [capped_events.py](capped_events.py)
 
