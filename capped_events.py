@@ -109,7 +109,7 @@ try:
     client.map_put_items(key, 'scores', scores, map_policy, meta)
     print("Confirming the size of Pac-Man top scores:", client.map_size(key, 'scores'))
     print("\nGet the top-10 Pac-Man scores, sorted by score (rank)")
-    by_rank = client.map_get_by_rank_range(key, 'scores', -10, -1, aerospike.MAP_RETURN_KEY_VALUE)
+    by_rank = client.map_get_by_rank_range(key, 'scores', -10, 10, aerospike.MAP_RETURN_KEY_VALUE)
     pp.pprint(by_rank)
     print("\nLowest score is:")
     pp.pprint(client.map_get_by_rank(key, 'scores', 0, aerospike.MAP_RETURN_KEY_VALUE))

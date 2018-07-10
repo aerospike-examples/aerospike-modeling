@@ -85,7 +85,7 @@ try:
             aerospike.MAP_RETURN_VALUE)
     pp.pprint(k)
     print("\nGet the four most recent messages using 'get_by_rank_range'")
-    v = client.map_get_by_rank_range(key, 'messages', -4, -1, aerospike.MAP_RETURN_VALUE)
+    v = client.map_get_by_rank_range(key, 'messages', -4, 4, aerospike.MAP_RETURN_VALUE)
     pp.pprint(v)
 except e.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
