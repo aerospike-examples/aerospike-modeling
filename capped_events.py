@@ -61,13 +61,21 @@ def random_score():
     score = random.randrange(2000, 18390, 10)
     return (ts, score, name, dt.strftime('%Y-%m-%d %H:%M:%S'))
 
+
 config = {'hosts': [(options.host, options.port)]}
 try:
     client = aerospike.client(config).connect(
                 options.username, options.password)
-except ex.ClientError as e:
-  print("Error: {0} [{1}]".format(e.msg, e.code))
-  sys.exit(2)
+except e.ClientError as e:
+    print("Error: {0} [{1}]".format(e.msg, e.code))
+    sys.exit(2)
+
+version = client.info_all('version')
+release = version.values()[0][1].split(' ')[-1]
+if aerospike.__version__ < '3.4.0' or release < '3.16.0.1':
+    print("\nThe inverted flag for map and list operations was added in",
+          "Aerospike 3.16 / Python client 3.4.0. Please update and run this example.")
+    sys.exit(3)
 
 namespace = options.namespace if options.namespace and options.namespace != 'None' else None
 set = options.set if options.set and options.set != 'None' else None
@@ -90,8 +98,8 @@ try:
     }
     client.map_set_policy(key, 'scores', map_policy)
 except e.RecordError as e:
-  print("Error: {0} [{1}]".format(e.msg, e.code))
-  sys.exit(3)
+    print("Error: {0} [{1}]".format(e.msg, e.code))
+    sys.exit(4)
 
 try:
     pp = pprint.PrettyPrinter(indent=2)
@@ -111,13 +119,19 @@ try:
     print("\nGet the top-10 Pac-Man scores, sorted by score (rank)")
     by_rank = client.map_get_by_rank_range(key, 'scores', -10, 10, aerospike.MAP_RETURN_KEY_VALUE)
     pp.pprint(by_rank)
-    print("\nLowest score is:")
-    pp.pprint(client.map_get_by_rank(key, 'scores', 0, aerospike.MAP_RETURN_KEY_VALUE))
-    print("Highest score is:")
+    print("\nHighest score is:")
     pp.pprint(client.map_get_by_rank(key, 'scores', -1, aerospike.MAP_RETURN_KEY_VALUE))
+    print("\nBottom 5 Pac-Man top scores, sorted by score (rank)")
+    by_rank = client.map_get_by_rank_range(key, 'scores', 0, 5, aerospike.MAP_RETURN_KEY_VALUE)
+    pp.pprint(by_rank)
+    print("\nSize of the top scores map is", client.map_size(key, 'scores'))
+
+    print("\n==============================")
     print("\nInject a new top score, keep map capped to 100 elements, in a single operation")
     ts, score, name, dt = random_score()
+    print("New score to add will be")
     new_score = [score, {'name': name, 'dt': dt}]
+    pp.pprint(new_score)
     ops = [
         {
             "op" : aerospike.OP_MAP_PUT,
@@ -126,13 +140,18 @@ try:
             "val": new_score
         },
         {
-            "op" : aerospike.OP_MAP_REMOVE_BY_RANK,
+            "op" : aerospike.OP_MAP_REMOVE_BY_RANK_RANGE,
             "bin": "scores",
-            "index": 0
+            "index": 1,
+            "val": 100,
+            "inverted": True
         }
     ]
     client.operate(key, ops, meta)
-    print("\nSize of the top scores map is", client.map_size(key, 'scores'))
+    print("\nSize of the top scores map is now", client.map_size(key, 'scores'))
+    print("\nBottom 5 Pac-Man top scores, sorted by score (rank)")
+    by_rank = client.map_get_by_rank_range(key, 'scores', 0, 5, aerospike.MAP_RETURN_KEY_VALUE)
+    pp.pprint(by_rank)
     print("New lowest score is:")
     pp.pprint(client.map_get_by_rank(key, 'scores', 0, aerospike.MAP_RETURN_KEY_VALUE))
     print("Highest score remains:")
