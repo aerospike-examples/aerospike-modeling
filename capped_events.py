@@ -2,6 +2,8 @@
 from __future__ import print_function
 import aerospike
 from aerospike import exception as e
+if aerospike.__version__ >= '3.4.0':
+    from aerospike_helpers.operations import map_operations as op_helpers
 import calendar
 import datetime
 from optparse import OptionParser
@@ -133,19 +135,8 @@ try:
     new_score = [score, {'name': name, 'dt': dt}]
     pp.pprint(new_score)
     ops = [
-        {
-            "op" : aerospike.OP_MAP_PUT,
-            "bin": "scores",
-            "key": ts,
-            "val": new_score
-        },
-        {
-            "op" : aerospike.OP_MAP_REMOVE_BY_RANK_RANGE,
-            "bin": "scores",
-            "index": 1,
-            "val": 100,
-            "inverted": True
-        }
+        op_helpers.map_put('scores', ts, new_score),
+        op_helpers.map_remove_by_rank_range('scores', 1, 100, aerospike.MAP_RETURN_NONE, True)
     ]
     client.operate(key, ops, meta)
     print("\nSize of the top scores map is now", client.map_size(key, 'scores'))
