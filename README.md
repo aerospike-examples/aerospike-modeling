@@ -22,8 +22,8 @@ event = {
 
 This enables several types of searches using the Map API methods:
  * Get the event in a timestamp range (time slicing)
- * Get all the events of a specific type
- * Get all the events matching a list of specified types
+ * Get all the events of a specific type (*Note:* needs Aerospike database >= 4.3.1)
+ * Get all the events matching a list of specified types (Also needs Aerospike database >= 4.3.1)
 
 The [map return type](https://www.aerospike.com/apidocs/python/aerospike.html#map-return-types)
 can be key-value pairs or the count of the elements matching the specified
@@ -51,7 +51,7 @@ message = {
 }
 ```
 
-This enables searches for messages by:
+This data modeling enables searches for messages by:
  * Get messages in a timestamp range (time slicing)
  * Get messages by their rank (most recent N messages)
 
@@ -82,7 +82,7 @@ score = {
 }
 ```
 
-In the example the following happens:
+The following happens in this example:
  * Initialize a collection of 6 Pac-Man high scores
  * Get the scores, sorted by date, then sorted by rank
  * Expland the top scores list to 100 with 94 new randomly generated elements
