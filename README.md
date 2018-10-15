@@ -96,3 +96,38 @@ $ python capped_events.py -h "172.16.60.131"
 
 See: [capped_events.py](capped_events.py)
 
+## Ordered List Leaderboard
+A collection of elements that has rank as the most important identifier, and
+where that rank can repeat, may be expressed as an ordered list.
+
+This example collects the Men's 100m world record, each element with the
+following structure.
+
+```
+[9.92, "Carl Lewis", "Seoul, South Korea", "September 24, 1988"]
+```
+
+This list structure allows for elements to be found by rank, even if some
+elements share the exact same rank.
+
+The example shows how duplicates can be avoided with write modify flags, while
+at the same time allowing for equal ranked elements.
+
+### Querying by Relative Rank
+One of the most interesting features of the List API is getting values by
+relative rank.
+
+In this example there is no element whose rank is exactly 10.0. Using the
+relative rank method, the adjacent values are returned with a single call.
+
+```
+Closest two results to 10.0 seconds
+[[9.95, 'Jim Hines', 'Mexico City, Mexico', 'October 14, 1968'], [10.02, 'Charles Greene', 'Mexico City, Mexico', 'October 13, 1968']]
+```
+
+```
+$ python ordered_list_leaderboard.py -h "172.16.60.131"
+```
+
+See: [ordered_list_leaderboard.py](ordered_list_leaderboard.py)
+
