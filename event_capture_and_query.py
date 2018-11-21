@@ -76,7 +76,8 @@ except e.RecordError as e:
 pp = pprint.PrettyPrinter(indent=2)
 try:
     version = client.info_all('version')
-    release = version.values()[0][1].split(' ')[-1]
+    pp.pprint(version)
+    release = list(version.values())[0][1].split(' ')[-1]
     # The following works starting Aerospike database 4.3.1 and client 3.5.0
     if (version_tuple(aerospike.__version__) >= version_tuple('3.5.0') and
         version_tuple(release) >= version_tuple('4.3.1')):
@@ -104,7 +105,7 @@ try:
         aerospike.MAP_RETURN_KEY_VALUE)
     pp.pprint(k)
     o = client.info_all("sets/{0}/{1}".format(namespace, set))
-    object_size = o.values()[0][1].split(':')[2]
+    object_size = list(o.values())[0][1].split(':')[2]
     print("\nThe size of the object with 6 events:")
     print(object_size)
 except e.RecordError as e:
@@ -114,11 +115,11 @@ except e.RecordError as e:
 print("\nAdding cruft")
 events = {}
 t = 1523473230000
-for i in xrange(1, 401, 1):
+for i in range(1, 401, 1):
     events[t] = ['zzz', {'sku':i,'bbb':i}]
     t = t + 7337
 t = 1523474237007
-for i in xrange(401, 801, 1):
+for i in range(401, 801, 1):
     events[t] = ['xyz', {'sku':i,'bbb':i}]
     t = t + 7139
 
@@ -155,7 +156,7 @@ try:
         aerospike.MAP_RETURN_KEY_VALUE)
     pp.pprint(k)
     o = client.info_all("sets/{0}/{1}".format(namespace, set))
-    object_size = o.values()[0][1].split(':')[2]
+    object_size = list(o.values())[0][1].split(':')[2]
     print("\nThe size of the object with 806 events:")
     print(object_size)
     client.truncate(namespace, set, 0)

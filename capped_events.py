@@ -77,7 +77,7 @@ except e.ClientError as e:
     sys.exit(2)
 
 version = client.info_all('version')
-release = version.values()[0][1].split(' ')[-1]
+release = list(version.values())[0][1].split(' ')[-1]
 if (version_tuple(aerospike.__version__) < version_tuple('3.4.0') or
     version_tuple(release) < version_tuple('3.16.0.1')):
     print("\nThe inverted flag for map and list operations was added in",
@@ -126,7 +126,7 @@ try:
     pp.pprint(by_rank)
     print("\nExpanding top scores for Pac-Man with 94 randomly generated",
           "elements")
-    for i in xrange(6, 100, 1):
+    for i in range(6, 100, 1):
         ts, score, name, dt = random_score()
         scores[ts] = [score, {'name': name, 'dt': dt}]
     client.map_put_items(key, 'scores', scores, map_policy, meta)
