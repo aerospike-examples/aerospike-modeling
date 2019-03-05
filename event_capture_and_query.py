@@ -76,7 +76,6 @@ except e.RecordError as e:
 pp = pprint.PrettyPrinter(indent=2)
 try:
     version = client.info_all('version')
-    pp.pprint(version)
     release = list(version.values())[0][1].split(' ')[-1]
     # The following works starting Aerospike database 4.3.1 and client 3.5.0
     if (version_tuple(aerospike.__version__) >= version_tuple('3.5.0') and

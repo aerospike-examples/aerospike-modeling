@@ -5,6 +5,8 @@ in particular [Map](https://www.aerospike.com/docs/guide/cdt-map.html)
 and [List](https://www.aerospike.com/docs/guide/cdt-list.html) can be used to
 implement common patterns.
 
+Also see [Counter Examples](Counters.md)
+
 ## Using Maps to Capture and Query Events
 
 In this example, a KV-ordered Map is used to collect a user's events.
