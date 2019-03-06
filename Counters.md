@@ -1,6 +1,7 @@
 # Aerospike Counter Examples
 
 The following are examples for a tech talk on implementing counters in Aerospike.
+See: https://www.slideshare.net/RonenBotzer/countdown-to-zero-counter-use-cases-in-aerospike
 
 ## Consolidated Counters
 
