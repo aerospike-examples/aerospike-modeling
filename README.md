@@ -5,6 +5,10 @@ in particular [Map](https://www.aerospike.com/docs/guide/cdt-map.html)
 and [List](https://www.aerospike.com/docs/guide/cdt-list.html) can be used to
 implement common patterns.
 
+I gave a couple of tech talks at Aerospike User Group meetups which expand on these modeling approaches:
+* https://www.slideshare.net/RonenBotzer/asug-tlvmeetup1talk
+* https://www.slideshare.net/RonenBotzer/asug-tlvmeetup2talk
+
 Also see [Counter Examples](Counters.md)
 
 ## Using Maps to Capture and Query Events
