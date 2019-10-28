@@ -9,7 +9,12 @@ I gave a couple of tech talks at Aerospike User Group meetups which expand on th
 * https://www.slideshare.net/RonenBotzer/asug-tlvmeetup1talk
 * https://www.slideshare.net/RonenBotzer/asug-tlvmeetup2talk
 
-Also see [Counter Examples](Counters.md)
+Also see [Counter Examples](Counters.md).
+
+**Note:** starting with Aerospike version 4.6 the map and list API calls can be
+applied at an arbitrary depth by specifying the [context](https://www.aerospike.com/docs/guide/cdt-context.html)
+for the operation. I have provided a code sample for operating on nested CDTs
+below.
 
 ## Using Maps to Capture and Query Events
 
@@ -137,3 +142,25 @@ $ python ordered_list_leaderboard.py -h "172.16.60.131"
 
 See: [ordered_list_leaderboard.py](ordered_list_leaderboard.py)
 
+## Operating on Nested Maps and Lists
+In the previous examples, operations were applied to the top level elements of
+a list or map. As of Aerospike version 4.6 this is no longer a limit. A map and
+list API operation can be applied at an arbitrary depth described by a
+[context](https://www.aerospike.com/docs/guide/cdt-context.html) object.
+
+See the Python client documentation for [defining](https://aerospike-python-client.readthedocs.io/en/latest/aerospike_helpers.html#module-aerospike_helpers.cdt_ctx) and [using](https://aerospike-python-client.readthedocs.io/en/latest/aerospike_helpers.operations.html#module-aerospike_helpers.operations.map_operations) a context.
+
+In this example, a leaderboard is constructed as a map whose keys are player IDs,
+and whose value contains a tuple (list). The first element of this tuple
+is the player's score, the second being a map of attributes. We will be applying
+operations on this embedded attributes map.
+
+```
+{ "CPU": [9800, {"dt": "2017-12-05 01:01:11", "ts": 1512435671573}] }
+```
+
+```
+$ python nested_cdts.py -h "172.16.60.131"
+```
+
+See: [nested_cdts.py](nested_cdts.py)

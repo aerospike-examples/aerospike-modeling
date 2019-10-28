@@ -82,7 +82,7 @@ except Exception as err:
 client.put(key, {'c': '🚀'})
 
 try:
-  print("One way to identify this key is now an indicator for a shareded",
+  print("One way to identify this key is now an indicator for a sharded",
         "counter is to try and increment it, then catch the exception")
   client.increment(key, 'c', 1, {}, {'ttl': aerospike.TTL_DONT_UPDATE})
 except e.BinIncompatibleType as err:
