@@ -9,12 +9,11 @@ I gave a couple of tech talks at Aerospike User Group meetups which expand on th
 * https://www.slideshare.net/RonenBotzer/asug-tlvmeetup1talk
 * https://www.slideshare.net/RonenBotzer/asug-tlvmeetup2talk
 
-Also see [Counter Examples](Counters.md).
+Also see [Counter Examples](counters.md).
 
 **Note:** starting with Aerospike version 4.6 the map and list API calls can be
 applied at an arbitrary depth by specifying the [context](https://www.aerospike.com/docs/guide/cdt-context.html)
-for the operation. I have provided a code sample for operating on nested CDTs
-below.
+for the operation. I have provided a [code sample for operating on nested CDTs](#operating-on-nested-maps-and-lists) below.
 
 ## Using Maps to Capture and Query Events
 

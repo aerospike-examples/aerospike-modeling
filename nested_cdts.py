@@ -93,9 +93,8 @@ except e.ClientError as e:
 
 version = client.info_all("version")
 release = list(version.values())[0][1].split(" ")[-1]
-if version_tuple(aerospike.__version__) < version_tuple("3.9.0") or version_tuple(
-    release
-) < version_tuple("4.6.0.2"):
+if (version_tuple(aerospike.__version__) < version_tuple("3.9.0")
+    or version_tuple(release) < version_tuple("4.6.0.2")):
     print(
         "\nNested map and list operations were added in",
         "Aerospike database 4.6 / Python client 3.9.0.",
@@ -135,7 +134,7 @@ try:
     k, m, b = client.operate(key, ops)
     by_rank = b["scores"]
     pp.pprint(by_rank)
-    print("===============================================")
+    print("==============================")
 
     # add an award icon to a specific player ("CFO") where awards have a type
     # and a count, some awards can be given once, and some more than once
@@ -173,7 +172,7 @@ try:
     client.operate(key, ops)
     k, m, b = client.get(key)
     pp.pprint(b)
-    print("===============================================")
+    print("==============================")
 
     # grant the award once more
     client.operate(key, ops)
