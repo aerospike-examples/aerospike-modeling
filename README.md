@@ -113,7 +113,7 @@ where that rank can repeat, may be expressed as an ordered list.
 This example collects the Men's 100m world record, each element with the
 following structure.
 
-```
+```python
 [9.92, "Carl Lewis", "Seoul, South Korea", "September 24, 1988"]
 ```
 
@@ -130,7 +130,7 @@ relative rank.
 In this example there is no element whose rank is exactly 10.0. Using the
 relative rank method, the adjacent values are returned with a single call.
 
-```
+```python
 Closest two results to 10.0 seconds
 [[9.95, 'Jim Hines', 'Mexico City, Mexico', 'October 14, 1968'], [10.02, 'Charles Greene', 'Mexico City, Mexico', 'October 13, 1968']]
 ```
@@ -154,7 +154,7 @@ and whose value contains a tuple (list). The first element of this tuple
 is the player's score, the second being a map of attributes. We will be applying
 operations on this embedded attributes map.
 
-```
+```python
 { "CPU": [9800, {"dt": "2017-12-05 01:01:11", "ts": 1512435671573}] }
 ```
 
