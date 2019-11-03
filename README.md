@@ -15,6 +15,8 @@ Also see [Counter Examples](counters.md).
 applied at an arbitrary depth by specifying the [context](https://www.aerospike.com/docs/guide/cdt-context.html)
 for the operation. I have provided a [code sample for operating on nested CDTs](#operating-on-nested-maps-and-lists) below.
 
+* [Operations on Nested Data Types in Aerospike](https://medium.com/@rbotzer/operations-on-nested-data-types-in-aerospike-part-i-c17400ffc15b)
+
 ## Using Maps to Capture and Query Events
 
 In this example, a KV-ordered Map is used to collect a user's events.
