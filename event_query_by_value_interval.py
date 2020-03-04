@@ -1,88 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from args import options
 import aerospike
-from aerospike import exception as e
-from optparse import OptionParser
+from aerospike import exception as ex
 import pprint
 import sys
 
-# Options Parsing
-usage = "usage: %prog [options]"
-optparser = OptionParser(usage=usage, add_help_option=False)
-optparser.add_option(
-    "--help", dest="help", action="store_true", help="Displays this message."
-)
-optparser.add_option(
-    "-U",
-    "--username",
-    dest="username",
-    type="string",
-    metavar="<USERNAME>",
-    help="Username to connect to database.",
-)
-optparser.add_option(
-    "-P",
-    "--password",
-    dest="password",
-    type="string",
-    metavar="<PASSWORD>",
-    help="Password to connect to database.",
-)
-optparser.add_option(
-    "-h",
-    "--host",
-    dest="host",
-    type="string",
-    default="127.0.0.1",
-    metavar="<ADDRESS>",
-    help="Address of Aerospike server.",
-)
-optparser.add_option(
-    "-p",
-    "--port",
-    dest="port",
-    type="int",
-    default=3000,
-    metavar="<PORT>",
-    help="Port of the Aerospike server.",
-)
-optparser.add_option(
-    "-n",
-    "--namespace",
-    dest="namespace",
-    type="string",
-    default="test",
-    metavar="<NS>",
-    help="Port of the Aerospike server.",
-)
-optparser.add_option(
-    "-s",
-    "--set",
-    dest="set",
-    type="string",
-    default="cdt_demo",
-    metavar="<SET>",
-    help="Port of the Aerospike server.",
-)
-options, args = optparser.parse_args()
-if options.help:
-    optparser.print_help()
-    print()
-    sys.exit(1)
 
 config = {"hosts": [(options.host, options.port)]}
 try:
     client = aerospike.client(config).connect(options.username, options.password)
-except e.ClientError as e:
+except ex.ClientError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
     sys.exit(2)
 
-if options.namespace and options.namespace != "None":
-    namespace = options.namespace
-else:
-    namespace = None
-set = options.set if options.set and options.set != "None" else None
-key = (namespace, set, "5bc47d70-76fa-b531-2e7d9013b831")
+if options.set == "None":
+    options.set = None
+key = (options.namespace, options.set, "5bc47d70-76fa-b531-2e7d9013b831")
 messages = {
     "0edf5b73-535c-4be7-b653-c0513dc79fb4": [
         1523474230000,
@@ -135,7 +69,7 @@ try:
         "map_order": aerospike.MAP_KEY_VALUE_ORDERED,
     }
     client.map_set_policy(key, "messages", map_policy)
-except e.RecordError as e:
+except ex.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
     sys.exit(3)
 
@@ -153,7 +87,7 @@ try:
     print("\nGet the four most recent messages using 'get_by_rank_range'")
     v = client.map_get_by_rank_range(key, "messages", -4, 4, aerospike.MAP_RETURN_VALUE)
     pp.pprint(v)
-except e.RecordError as e:
+except ex.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
 
 client.close()

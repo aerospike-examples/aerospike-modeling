@@ -163,3 +163,9 @@ $ python nested_cdts.py -h "172.16.60.131"
 ```
 
 See: [nested_cdts.py](nested_cdts.py)
+
+## Bitwise operations on bitfields
+Added in Aerospike 4.6, bitwise operations on the bytes data type (blobs) allow
+efficient modeling of data using bitfields.
+
+See: [bitwise_operations.py](bitwise_operations.py)

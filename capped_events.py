@@ -1,82 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from args import options
 import aerospike
 from aerospike import exception as e
 
 try:
-    from aerospike_helpers.operations import map_operations as mh
+    from aerospike_helpers.operations import map_operations
 except:
     pass  # Needs Aerospike client >= 3.4.0
 import calendar
 import datetime
-from optparse import OptionParser
 import pprint
 import random
 import sys
 
-# Options Parsing
-usage = "usage: %prog [options]"
-optparser = OptionParser(usage=usage, add_help_option=False)
-optparser.add_option(
-    "--help", dest="help", action="store_true", help="Displays this message."
-)
-optparser.add_option(
-    "-U",
-    "--username",
-    dest="username",
-    type="string",
-    metavar="<USERNAME>",
-    help="Username to connect to database.",
-)
-optparser.add_option(
-    "-P",
-    "--password",
-    dest="password",
-    type="string",
-    metavar="<PASSWORD>",
-    help="Password to connect to database.",
-)
-optparser.add_option(
-    "-h",
-    "--host",
-    dest="host",
-    type="string",
-    default="127.0.0.1",
-    metavar="<ADDRESS>",
-    help="Address of Aerospike server.",
-)
-optparser.add_option(
-    "-p",
-    "--port",
-    dest="port",
-    type="int",
-    default=3000,
-    metavar="<PORT>",
-    help="Port of the Aerospike server.",
-)
-optparser.add_option(
-    "-n",
-    "--namespace",
-    dest="namespace",
-    type="string",
-    default="test",
-    metavar="<NS>",
-    help="Port of the Aerospike server.",
-)
-optparser.add_option(
-    "-s",
-    "--set",
-    dest="set",
-    type="string",
-    default="scores_demo",
-    metavar="<SET>",
-    help="Port of the Aerospike server.",
-)
-options, args = optparser.parse_args()
-if options.help:
-    optparser.print_help()
-    print()
-    sys.exit(1)
+spacer = "=" * 30
 
 
 def version_tuple(version):
@@ -119,8 +57,9 @@ except e.ClientError as e:
 
 version = client.info_all("version")
 release = list(version.values())[0][1].split(" ")[-1]
-if (version_tuple(aerospike.__version__) < version_tuple("3.4.0")
-    or version_tuple(release) < version_tuple("3.16.0.1")):
+if version_tuple(aerospike.__version__) < version_tuple("3.4.0") or version_tuple(
+    release
+) < version_tuple("3.16.0.1"):
     print(
         "\nThe inverted flag for map and list operations was added in",
         "Aerospike database 3.16 / Python client 3.4.0.",
@@ -128,12 +67,9 @@ if (version_tuple(aerospike.__version__) < version_tuple("3.4.0")
     )
     sys.exit(3)
 
-if options.namespace and options.namespace != "None":
-    namespace = options.namespace
-else:
-    namespace = None
-set = options.set if options.set and options.set != "None" else None
-key = (namespace, set, "pacman")
+if options.set == "None":
+    options.set = None
+key = (options.namespace, options.set, "pacman")
 scores = {
     1512435671573: [9800, {"name": "CPU", "dt": "2017-12-05 01:01:11"}],
     1525182446891: [9200, {"name": "ETC", "dt": "2018-05-01 13:47:26"}],
@@ -188,7 +124,7 @@ try:
     pp.pprint(by_rank)
     print("\nSize of the top scores map is", client.map_size(key, "scores"))
 
-    print("\n==============================")
+    print(spacer)
     print(
         "\nInject a new top score, keep map capped to 100 elements,",
         "in a single operation",
@@ -198,8 +134,8 @@ try:
     new_score = [score, {"name": name, "dt": dt}]
     pp.pprint(new_score)
     ops = [
-        mh.map_put("scores", ts, new_score),
-        mh.map_remove_by_rank_range(
+        map_operations.map_put("scores", ts, new_score),
+        map_operations.map_remove_by_rank_range(
             "scores", 1, 100, aerospike.MAP_RETURN_NONE, True
         ),
     ]
@@ -214,7 +150,7 @@ try:
     pp.pprint(client.map_get_by_rank(key, "scores", 0, aerospike.MAP_RETURN_KEY_VALUE))
     print("Highest score remains:")
     pp.pprint(client.map_get_by_rank(key, "scores", -1, aerospike.MAP_RETURN_KEY_VALUE))
-    client.truncate(namespace, set, 0)
+    client.truncate(options.namespace, options.set, 0)
 except e.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
 

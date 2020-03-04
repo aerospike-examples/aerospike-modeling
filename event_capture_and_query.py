@@ -1,74 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from args import options
 import aerospike
-from aerospike import exception as e
-from optparse import OptionParser
+from aerospike import exception as ex
 import pprint
 import sys
-
-# Options Parsing
-usage = "usage: %prog [options]"
-optparser = OptionParser(usage=usage, add_help_option=False)
-optparser.add_option(
-    "--help", dest="help", action="store_true", help="Displays this message."
-)
-optparser.add_option(
-    "-U",
-    "--username",
-    dest="username",
-    type="string",
-    metavar="<USERNAME>",
-    help="Username to connect to database.",
-)
-optparser.add_option(
-    "-P",
-    "--password",
-    dest="password",
-    type="string",
-    metavar="<PASSWORD>",
-    help="Password to connect to database.",
-)
-optparser.add_option(
-    "-h",
-    "--host",
-    dest="host",
-    type="string",
-    default="127.0.0.1",
-    metavar="<ADDRESS>",
-    help="Address of Aerospike server.",
-)
-optparser.add_option(
-    "-p",
-    "--port",
-    dest="port",
-    type="int",
-    default=3000,
-    metavar="<PORT>",
-    help="Port of the Aerospike server.",
-)
-optparser.add_option(
-    "-n",
-    "--namespace",
-    dest="namespace",
-    type="string",
-    default="test",
-    metavar="<NS>",
-    help="Port of the Aerospike server.",
-)
-optparser.add_option(
-    "-s",
-    "--set",
-    dest="set",
-    type="string",
-    default="events_demo",
-    metavar="<SET>",
-    help="Port of the Aerospike server.",
-)
-options, args = optparser.parse_args()
-if options.help:
-    optparser.print_help()
-    print()
-    sys.exit(1)
 
 
 def version_tuple(version):
@@ -78,16 +14,13 @@ def version_tuple(version):
 config = {"hosts": [(options.host, options.port)]}
 try:
     client = aerospike.client(config).connect(options.username, options.password)
-except e.ClientError as e:
+except ex.ClientError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
     sys.exit(2)
 
-if options.namespace and options.namespace != "None":
-    namespace = options.namespace
-else:
-    namespace = None
-set = options.set if options.set and options.set != "None" else None
-key = (namespace, set, 1)
+if options.set == "None":
+    options.set = None
+key = (options.namespace, options.set, 1)
 events = {
     1523474230000: ["fav", {"sku": 1, "b": 2}],
     1523474231001: ["comment", {"sku": 2, "b": 22}],
@@ -106,7 +39,7 @@ try:
         "map_order": aerospike.MAP_KEY_VALUE_ORDERED,
     }
     client.map_set_policy(key, "events", map_policy)
-except e.RecordError as e:
+except ex.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
     sys.exit(3)
 
@@ -115,8 +48,9 @@ try:
     version = client.info_all("version")
     release = list(version.values())[0][1].split(" ")[-1]
     # The following works starting Aerospike database 4.3.1 and client 3.5.0
-    if (version_tuple(aerospike.__version__) >= version_tuple("3.5.0")
-        and version_tuple(release) >= version_tuple("4.3.1")):
+    if version_tuple(aerospike.__version__) >= version_tuple("3.5.0") and version_tuple(
+        release
+    ) >= version_tuple("4.3.1"):
         print("\nGet all the 'comment' type events")
         v = client.map_get_by_value(
             key,
@@ -146,11 +80,11 @@ try:
         key, "events", 1523474230000, 1523474235999, aerospike.MAP_RETURN_KEY_VALUE
     )
     pp.pprint(k)
-    o = client.info_all("sets/{0}/{1}".format(namespace, set))
+    o = client.info_all("sets/{0}/{1}".format(options.namespace, options.set))
     object_size = list(o.values())[0][1].split(":")[2]
     print("\nThe size of the object with 6 events:")
     print(object_size)
-except e.RecordError as e:
+except ex.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
     sys.exit(4)
 
@@ -171,8 +105,9 @@ try:
     print("\nChecking for the number of events")
     print(c)
     print("400 elements before the inital 6 events, 400 after")
-    if (version_tuple(aerospike.__version__) >= version_tuple("3.5.0")
-        and version_tuple(release) >= version_tuple("4.3.1")):
+    if version_tuple(aerospike.__version__) >= version_tuple("3.5.0") and version_tuple(
+        release
+    ) >= version_tuple("4.3.1"):
         print("\nGet the count of all the 'viewed' and 'comment' type events")
         c = client.map_get_by_value_list(
             key,
@@ -202,12 +137,12 @@ try:
         key, "events", 1523474230000, 1523474235999, aerospike.MAP_RETURN_KEY_VALUE
     )
     pp.pprint(k)
-    o = client.info_all("sets/{0}/{1}".format(namespace, set))
+    o = client.info_all("sets/{0}/{1}".format(options.namespace, options.set))
     object_size = list(o.values())[0][1].split(":")[2]
     print("\nThe size of the object with 806 events:")
     print(object_size)
-    client.truncate(namespace, set, 0)
-except e.RecordError as e:
+    client.truncate(options.namespace, options.set, 0)
+except ex.RecordError as e:
     print("Error: {0} [{1}]".format(e.msg, e.code))
 
 client.close()
